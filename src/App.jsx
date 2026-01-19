@@ -6,6 +6,7 @@ import Carrito from './components/Checkout';
 import Login from './components/Login'; 
 import Boleta from './components/Boleta';
 import Nosotros from './components/Nosotros';
+import Historial from './components/Historial'; // NUEVO COMPONENTE
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
@@ -29,7 +30,9 @@ function App() {
   });
 
   const [view, setView] = useState('tienda');
-  
+  const [showToast, setShowToast] = useState(false); // ESTADO PARA NOTIFICACIÓN
+  const [toastMsg, setToastMsg] = useState("");
+
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -40,8 +43,8 @@ function App() {
   }, [cart]);
 
   const handleViewChange = (newView) => {
-    if (newView === 'carrito' && !user) {
-      alert("Para proceder al pago, por favor, inicia sesión.");
+    if ((newView === 'carrito' || newView === 'historial') && !user) {
+      alert("Por favor, inicia sesión para acceder.");
       setView('login');
       return;
     }
@@ -65,6 +68,11 @@ function App() {
       }
       return [...prevCart, { ...product, cantidad: 1 }];
     });
+
+    // ACTIVAR NOTIFICACIÓN
+    setToastMsg(`¡${product.nombre} añadido! 🥩`);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const cartItemCount = cart.reduce((acc, item) => acc + item.cantidad, 0);
@@ -77,6 +85,20 @@ function App() {
         user={user} 
         onLogout={handleLogout} 
       />
+
+      {/* COMPONENTE DE NOTIFICACIÓN (TOAST) */}
+      {showToast && (
+        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1050 }}>
+          <div className="toast show align-items-center text-white bg-success border-0 shadow-lg">
+            <div className="d-flex">
+              <div className="toast-body fw-bold">
+                <i className="bi bi-check-circle-fill me-2"></i>{toastMsg}
+              </div>
+              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <main className="flex-grow-1">
         {view === 'tienda' && (
@@ -106,7 +128,6 @@ function App() {
           </section>
         )}
 
-        {/* ESTA ES LA VISTA QUE DEBE COINCIDIR CON EL NAVBAR */}
         {view === 'recien-llegados' && (
           <section className="py-5">
             <div className="container px-4 px-lg-5">
@@ -124,6 +145,8 @@ function App() {
         {view === 'carrito' && <Carrito cart={cart} setCart={setCart} user={user} setView={handleViewChange} />}
         {view === 'login' && <Login setUser={setUser} setView={handleViewChange} />}
         {view === 'boleta' && <Boleta cart={cart} user={user} setView={handleViewChange} setCart={setCart} />}
+        {view === 'historial' && <Historial setView={handleViewChange} />}
+        
         {view === 'admin' && (
           <div className="container py-5 text-center">
             <div className="alert alert-warning"><i className="bi bi-gear-fill me-2"></i>Panel de Administración</div>

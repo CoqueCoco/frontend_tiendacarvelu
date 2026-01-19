@@ -64,9 +64,22 @@ const Navbar = ({ cartCount, setView, user, onLogout }) => {
                                 </button>
                                 <ul className={`dropdown-menu dropdown-menu-end shadow border-0 ${isUserOpen ? 'show' : ''}`} 
                                     style={{ display: isUserOpen ? 'block' : 'none', position: 'absolute', right: 0 }}>
-                                    <li className="px-3 py-2 small text-muted border-bottom">{user.email}</li>
+                                    <li className="px-3 py-2 small text-muted border-bottom">
+                                        <div className="fw-bold text-dark">{user.name}</div>
+                                        {user.email}
+                                    </li>
+                                    
+                                    {/* NUEVA OPCIÓN: HISTORIAL DE PEDIDOS */}
                                     <li>
-                                        <button className="dropdown-item text-danger mt-1" onClick={onLogout}>
+                                        <button className="dropdown-item py-2" onClick={() => navegar('historial')}>
+                                            <i className="bi bi-clock-history me-2"></i>Mis Pedidos
+                                        </button>
+                                    </li>
+                                    
+                                    <li><hr className="dropdown-divider my-1" /></li>
+                                    
+                                    <li>
+                                        <button className="dropdown-item text-danger" onClick={onLogout}>
                                             <i className="bi-box-arrow-right me-2"></i>Cerrar Sesión
                                         </button>
                                     </li>
@@ -85,7 +98,7 @@ const Navbar = ({ cartCount, setView, user, onLogout }) => {
                             <span className="badge bg-dark text-white ms-1 rounded-pill">{cartCount}</span>
                         </button>
 
-                        {/* PANEL ADMIN (Solo si hay usuario o como acceso directo) */}
+                        {/* PANEL ADMIN */}
                         <button className="btn btn-warning fw-bold shadow-sm" onClick={() => navegar('admin')}>
                             <i className="bi bi-gear-fill me-1"></i> Admin Panel
                         </button>
