@@ -7,7 +7,7 @@ const AdminPanel = ({ productos, setProductos, setView }) => {
         nombre: "", precio: "", precioAnterior: "", img: "", oferta: false, nuevo: false
     });
 
-    // Estado para la notificación elegante (Toast)
+    // Estado para la notificación (Toast)
     const [toast, setToast] = useState({ show: false, msg: "", color: "bg-dark" });
 
     const mostrarToast = (msg, color = "bg-dark") => {
