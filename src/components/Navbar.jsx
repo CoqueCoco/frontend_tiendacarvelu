@@ -40,8 +40,8 @@ const Navbar = ({ cartCount, setView, user, onLogout, searchTerm, setSearchTerm 
                             <ul className={`dropdown-menu shadow border-0 ${isTiendaOpen ? 'show' : ''}`} style={{ display: isTiendaOpen ? 'block' : 'none' }}>
                                 <li><a className="dropdown-item" href="#!" onClick={() => navegar('tienda')}>Todos los productos</a></li>
                                 <li><hr className="dropdown-divider" /></li>
-                                <li><a className="dropdown-item" href="#!" onClick={() => navegar('ofertas')}>Ofertas 🔥</a></li>
-                                <li><a className="dropdown-item" href="#!" onClick={() => navegar('recien-llegados')}>Recién llegados ✨</a></li>
+                                <li><a className="dropdown-item" href="#!" onClick={() => navegar('ofertas')}>Ofertas</a></li>
+                                <li><a className="dropdown-item" href="#!" onClick={() => navegar('recien-llegados')}>Recién llegados</a></li>
                             </ul>
                         </li>
                     </ul>
