@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'; // Añadimos useEffect para el almacenamiento
+import { useState, useEffect } from 'react'; 
 import Navbar from './components/Navbar';
 import Header from './components/Header';
 import Productos from './components/Productos'; 
+import Carrito from './components/Checkout'; 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css'; 
 
@@ -17,51 +18,74 @@ const PRODUCTOS_DATA = [
 ];
 
 function App() {
-  // Inicializamos el carrito buscando si hay algo guardado en el navegador
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem('carveluCart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  // Cada vez que el carrito cambie, guardamos la versión actualizada en LocalStorage
+  const [view, setView] = useState('tienda');
+  
+  // Cambiamos el usuario a null para probar la restricción de login
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
   useEffect(() => {
     localStorage.setItem('carveluCart', JSON.stringify(cart));
   }, [cart]);
 
+  // Función de navegación con protección de ruta
+  const handleViewChange = (newView) => {
+    if (newView === 'carrito' && !user) {
+      alert("Para proceder al pago, por favor, inicia sesión.");
+      // Aquí podrías redirigir a un login, por ahora lo dejamos en tienda
+      return;
+    }
+    setView(newView);
+  };
+
   const addToCart = (product) => {
     setCart([...cart, product]);
-    console.log("Añadido al carro:", product.nombre);
   };
 
   return (
     <div className="d-flex flex-column min-vh-100"> 
-      <Navbar cartCount={cart.length} />
-      
-      <Header />
+      <Navbar cartCount={cart.length} setView={handleViewChange} />
       
       <main className="flex-grow-1">
-        <section className="py-5">
-          <div className="container px-4 px-lg-5">
-            <h2 className="fw-bolder mb-4 text-center">Nuestros Cortes Destacados</h2>
-            
-            {/* Grid responsivo optimizado */}
-            <div className="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-              {PRODUCTOS_DATA.map((prod) => (
-                <Productos 
-                  key={prod.id} 
-                  data={prod} 
-                  onAdd={addToCart} 
-                />
-              ))}
-            </div>
-          </div>
-        </section>
+        {view === 'tienda' ? (
+          <>
+            <Header />
+            <section className="py-5">
+              <div className="container px-4 px-lg-5">
+                <h2 className="fw-bolder mb-4 text-center">Nuestros Cortes Destacados</h2>
+                <div className="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                  {PRODUCTOS_DATA.map((prod) => (
+                    <Productos 
+                      key={prod.id} 
+                      data={prod} 
+                      onAdd={addToCart} 
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <Carrito 
+            cart={cart} 
+            setCart={setCart} 
+            user={user} 
+            setView={setView} 
+          />
+        )}
       </main>
 
       <footer className="py-5 bg-dark w-100 mt-auto">
         <div className="container">
           <p className="m-0 text-center text-white small">
-            Copyright &copy; Carvelu 2025 - Expertos en Carnes
+            Copyright &copy; Carvelu 2026 - Expertos en Carnes
           </p>
         </div>
       </footer>
