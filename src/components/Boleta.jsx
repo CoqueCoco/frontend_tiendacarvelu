@@ -1,73 +1,76 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Boleta = ({ cart, user, setView, setCart }) => {
-    const total = cart.reduce((acc, item) => acc + item.precio, 0);
-    const fecha = new Date().toLocaleDateString();
-    const numeroPedido = Math.floor(Math.random() * 90000) + 10000;
+    const [pedido, setPedido] = useState(null);
 
-    const terminarProceso = () => {
-        setCart([]); // Vaciamos el carrito real
-        localStorage.removeItem('carveluCart');
+    useEffect(() => {
+        // Recuperamos el pedido recién guardado en el Checkout
+        const ultimo = localStorage.getItem('ultimoPedido');
+        if (ultimo) {
+            setPedido(JSON.parse(ultimo));
+        }
+    }, []);
+
+    const finalizarCompra = () => {
+        setCart([]); // Vaciamos el carrito global
+        localStorage.removeItem('carveluCart'); // Limpiamos storage
         setView('tienda');
     };
 
+    if (!pedido) return <div className="container py-5 text-center">Cargando boleta...</div>;
+
     return (
-        <div className="container py-5 mt-4">
+        <div className="container py-5">
             <div className="row justify-content-center">
-                <div className="col-md-6 col-lg-5">
-                    <div className="card border-0 shadow-lg p-4" style={{ backgroundColor: '#fff', borderTop: '10px solid #dc3545' }}>
-                        <div className="text-center mb-4">
-                            <h2 className="fw-bold mb-0">CARVELU</h2>
-                            <p className="text-muted small">Carnicería & Boutique</p>
-                            <div className="border-top border-bottom py-2 my-3">
-                                <h5 className="mb-0 fw-bold">BOLETA ELECTRÓNICA</h5>
-                                <small>N° Pedido: {numeroPedido}</small>
-                            </div>
+                <div className="col-md-8 col-lg-6">
+                    <div className="card shadow-lg border-0">
+                        <div className="card-header bg-success text-white text-center py-4">
+                            <i className="bi bi-check-circle-fill fs-1"></i>
+                            <h3 className="fw-bold mb-0">¡Pedido Confirmado!</h3>
+                            <p className="mb-0">Gracias por preferir Carvelu</p>
                         </div>
+                        <div className="card-body p-4">
+                            <div className="d-flex justify-content-between mb-4">
+                                <div>
+                                    <h6 className="text-muted mb-1">Nro. de Orden:</h6>
+                                    <p className="fw-bold">#{pedido.id}</p>
+                                </div>
+                                <div className="text-end">
+                                    <h6 className="text-muted mb-1">Fecha:</h6>
+                                    <p className="fw-bold">{pedido.fecha}</p>
+                                </div>
+                            </div>
 
-                        <div className="small mb-4">
-                            <div className="d-flex justify-content-between">
-                                <strong>Fecha:</strong> <span>{fecha}</span>
+                            <div className="mb-4">
+                                <h6 className="fw-bold border-bottom pb-2">Detalle del Cliente</h6>
+                                <p className="mb-1"><strong>Nombre:</strong> {pedido.cliente}</p>
+                                <p className="mb-1"><strong>Dirección:</strong> {pedido.direccion}</p>
+                                <p className="mb-1"><strong>Método de Pago:</strong> {pedido.metodo === 'efectivo' ? 'Efectivo al recibir' : 'Tarjeta'}</p>
                             </div>
-                            <div className="d-flex justify-content-between">
-                                <strong>Cliente:</strong> <span>{user?.name}</span>
-                            </div>
-                            <div className="d-flex justify-content-between">
-                                <strong>Email:</strong> <span>{user?.email}</span>
-                            </div>
-                        </div>
 
-                        <table className="table table-sm table-borderless small">
-                            <thead>
-                                <tr className="border-bottom text-muted">
-                                    <th>DESCRIPCIÓN</th>
-                                    <th className="text-end">VALOR</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {cart.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.nombre}</td>
-                                        <td className="text-end">${item.precio.toLocaleString('es-CL')}</td>
-                                    </tr>
+                            <div className="mb-4">
+                                <h6 className="fw-bold border-bottom pb-2">Productos</h6>
+                                {pedido.productos.map((item, index) => (
+                                    <div key={index} className="d-flex justify-content-between small mb-2">
+                                        <span>{item.cantidad}x {item.nombre}</span>
+                                        <span className="fw-bold">${(item.precio * item.cantidad).toLocaleString('es-CL')}</span>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-
-                        <div className="border-top pt-3 mt-3">
-                            <div className="d-flex justify-content-between h4 fw-bold">
-                                <span>TOTAL PAGADO</span>
-                                <span className="text-danger">${total.toLocaleString('es-CL')}</span>
                             </div>
-                        </div>
 
-                        <div className="text-center mt-4">
-                            <button className="btn btn-outline-secondary btn-sm me-2 d-print-none" onClick={() => window.print()}>
-                                <i className="bi bi-printer me-1"></i>Imprimir
-                            </button>
-                            <button className="btn btn-dark btn-sm d-print-none" onClick={terminarProceso}>
-                                Volver al Inicio
-                            </button>
+                            <div className="bg-light p-3 rounded d-flex justify-content-between align-items-center">
+                                <span className="h5 mb-0 fw-bold">Total Pagado:</span>
+                                <span className="h4 mb-0 fw-bold text-success">${pedido.total.toLocaleString('es-CL')}</span>
+                            </div>
+
+                            <div className="mt-4 text-center">
+                                <button className="btn btn-dark btn-lg w-100 fw-bold" onClick={finalizarCompra}>
+                                    Volver al Inicio
+                                </button>
+                                <button className="btn btn-outline-secondary btn-sm mt-3 w-100" onClick={() => window.print()}>
+                                    <i className="bi bi-printer me-2"></i>Imprimir Comprobante
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
