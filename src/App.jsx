@@ -6,158 +6,124 @@ import Carrito from './components/Checkout';
 import Login from './components/Login'; 
 import Boleta from './components/Boleta';
 import Nosotros from './components/Nosotros';
-import Historial from './components/Historial'; // NUEVO COMPONENTE
+import Historial from './components/Historial';
+import AdminPanel from './components/AdminPanel';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
-import './index.css'; 
 
-const PRODUCTOS_DATA = [
+const INITIAL_PRODUCTS = [
     { id: 1, nombre: "Sobrecostilla", precio: 8990, precioAnterior: 10990, oferta: true, nuevo: false, img: "https://www.corralesdelsur.cl/cdn/shop/files/Sobrecostilla_ff459257-6c09-4c2f-8655-b1e2f3f15fc5.jpg?v=1732208326&width=1946" },
-    { id: 2, nombre: "Lomo Vetado americano", precio: 16990, premium: true, nuevo: true, img: "https://i0.wp.com/entreparrilleros.cl/wp-content/uploads/2021/09/lomovetadochice.png?fit=1080%2C1080&ssl=1" },
+    { id: 2, nombre: "Lomo Vetado americano", precio: 16990, oferta: false, nuevo: true, img: "https://i0.wp.com/entreparrilleros.cl/wp-content/uploads/2021/09/lomovetadochice.png?fit=1080%2C1080&ssl=1" },
     { id: 3, nombre: "Huachalomo", precio: 9200, precioAnterior: 11490, oferta: true, nuevo: false, img: "https://agrocomercial.cl/wp-content/uploads/2022/06/Huachalomo-CATV.jpg" },
-    { id: 4, nombre: "Entraña Americana", precio: 21500, premium: true, nuevo: true, img: "https://thebeef.cl/wp-content/uploads/2024/12/9.png" },
-    { id: 5, nombre: "Asado Carnicero", precio: 8500, precioAnterior: 10500, oferta: true, nuevo: false, img: "https://www.corralesdelsur.cl/cdn/shop/files/Asado_Carnicero.jpg?v=1732210501&width=1946" },
-    { id: 6, nombre: "Lomo Liso americano", precio: 15990, premium: true, nuevo: false, img: "https://jumbocl.vtexassets.com/arquivos/ids/318351-250-250/Lomo-Vetado-Prime-Americana-Brandt-Al-Vacio-kg.jpg?v=638776414123330000" },
-    { id: 7, nombre: "Tapabarriga", precio: 9990, precioAnterior: 11990, oferta: true, nuevo: true, img: "https://www.corralesdelsur.cl/cdn/shop/files/Tapabarriga_83c86cc2-42e0-4a05-8143-84fc34a3b7a0.jpg?v=1732210294&width=1946" },
-    { id: 8, nombre: "Punta de Ganso", precio: 14200, oferta: false, nuevo: true, img: "https://www.corralesdelsur.cl/cdn/shop/files/Punta_Ganso_e4d26761-7367-4cad-914b-9d64c88748f2.jpg?v=1732212154" }
+    { id: 4, nombre: "Entraña Americana", precio: 21500, oferta: false, nuevo: true, img: "https://thebeef.cl/wp-content/uploads/2024/12/9.png" }
 ];
 
 function App() {
+  const [productos, setProductos] = useState(() => {
+    const saved = localStorage.getItem('carvelu_inventory');
+    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+  });
+
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem('carveluCart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
-
-  const [view, setView] = useState('tienda');
-  const [showToast, setShowToast] = useState(false); // ESTADO PARA NOTIFICACIÓN
-  const [toastMsg, setToastMsg] = useState("");
 
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  const [view, setView] = useState('tienda');
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem('carvelu_inventory', JSON.stringify(productos));
+  }, [productos]);
+
   useEffect(() => {
     localStorage.setItem('carveluCart', JSON.stringify(cart));
   }, [cart]);
 
+  // CONTROL DE ACCESO: Aquí es donde validamos según la vista
   const handleViewChange = (newView) => {
+    // 1. Si intenta ir al Carrito o Historial y NO está logueado
     if ((newView === 'carrito' || newView === 'historial') && !user) {
-      alert("Por favor, inicia sesión para acceder.");
-      setView('login');
-      return;
+        alert("Para revisar tu carrito y finalizar la compra, por favor inicia sesión.");
+        setView('login');
+        return;
     }
+
+    // 2. Si intenta ir al Admin y NO es admin
+    if (newView === 'admin' && user?.role !== 'admin') {
+        alert("Acceso denegado. Se requieren permisos de administrador.");
+        setView('tienda');
+        return;
+    }
+
     setView(newView);
+    setSearchTerm("");
     window.scrollTo(0, 0); 
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    setView('tienda');
-  };
-
+  // Añadir al carrito ahora es LIBRE
   const addToCart = (product) => {
-    setCart(prevCart => {
-      const existe = prevCart.find(item => item.id === product.id);
-      if (existe) {
-        return prevCart.map(item => 
-          item.id === product.id ? { ...item, cantidad: item.cantidad + 1 } : item
-        );
-      }
-      return [...prevCart, { ...product, cantidad: 1 }];
+    setCart(prev => {
+      const existe = prev.find(item => item.id === product.id);
+      if (existe) return prev.map(item => item.id === product.id ? { ...item, cantidad: item.cantidad + 1 } : item);
+      return [...prev, { ...product, cantidad: 1 }];
     });
-
-    // ACTIVAR NOTIFICACIÓN
-    setToastMsg(`¡${product.nombre} añadido! 🥩`);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
   };
 
-  const cartItemCount = cart.reduce((acc, item) => acc + item.cantidad, 0);
+  const productosFiltrados = productos.filter(p => {
+    const coincide = p.nombre.toLowerCase().includes(searchTerm.toLowerCase());
+    if (view === 'ofertas') return p.oferta && coincide;
+    if (view === 'recien-llegados') return p.nuevo && coincide;
+    return coincide;
+  });
 
   return (
     <div className="d-flex flex-column min-vh-100"> 
       <Navbar 
-        cartCount={cartItemCount} 
+        cartCount={cart.reduce((acc, i) => acc + i.cantidad, 0)} 
         setView={handleViewChange} 
         user={user} 
-        onLogout={handleLogout} 
+        onLogout={() => { setUser(null); localStorage.removeItem('user'); setView('tienda'); }} 
+        searchTerm={searchTerm} 
+        setSearchTerm={setSearchTerm} 
       />
 
-      {/* COMPONENTE DE NOTIFICACIÓN (TOAST) */}
-      {showToast && (
-        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1050 }}>
-          <div className="toast show align-items-center text-white bg-success border-0 shadow-lg">
-            <div className="d-flex">
-              <div className="toast-body fw-bold">
-                <i className="bi bi-check-circle-fill me-2"></i>{toastMsg}
-              </div>
-              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <main className="flex-grow-1">
-        {view === 'tienda' && (
+        {(view === 'tienda' || view === 'ofertas' || view === 'recien-llegados') && (
           <>
-            <Header />
-            <section className="py-5">
-                <div className="container px-4 px-lg-5">
-                    <h2 className="fw-bolder mb-4 text-center">Nuestros Cortes Destacados</h2>
-                    <div className="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                        {PRODUCTOS_DATA.map(prod => <Productos key={prod.id} data={prod} onAdd={addToCart} />)}
-                    </div>
+            {view === 'tienda' && <Header />}
+            <section className="py-5 container px-4">
+                <h2 className="fw-bolder mb-4 text-center">Catálogo Carvelu</h2>
+                <div className="row gx-4 gy-4 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                    {productosFiltrados.length > 0 ? (
+                        productosFiltrados.map(prod => <Productos key={prod.id} data={prod} onAdd={addToCart} />)
+                    ) : (
+                        <div className="text-center py-5">
+                            <i className="bi bi-search fs-1 text-muted"></i>
+                            <p className="mt-3 text-muted">No encontramos ese corte.</p>
+                        </div>
+                    )}
                 </div>
             </section>
           </>
         )}
 
-        {view === 'ofertas' && (
-          <section className="py-5">
-            <div className="container px-4 px-lg-5">
-              <h2 className="fw-bolder mb-4 text-center text-danger">Ofertas de la Semana 🥩</h2>
-              <div className="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                {PRODUCTOS_DATA.filter(p => p.oferta).map(prod => (
-                  <Productos key={prod.id} data={prod} onAdd={addToCart} />
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {view === 'recien-llegados' && (
-          <section className="py-5">
-            <div className="container px-4 px-lg-5">
-              <h2 className="fw-bolder mb-4 text-center text-primary">¡Recién Llegados! ✨</h2>
-              <div className="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-                {PRODUCTOS_DATA.filter(p => p.nuevo).map(prod => (
-                  <Productos key={prod.id} data={prod} onAdd={addToCart} />
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
         {view === 'nosotros' && <Nosotros setView={handleViewChange} />}
         {view === 'carrito' && <Carrito cart={cart} setCart={setCart} user={user} setView={handleViewChange} />}
-        {view === 'login' && <Login setUser={setUser} setView={handleViewChange} />}
+        {view === 'login' && <Login setUser={(u) => { setUser(u); setView('tienda'); }} setView={handleViewChange} />}
         {view === 'boleta' && <Boleta cart={cart} user={user} setView={handleViewChange} setCart={setCart} />}
         {view === 'historial' && <Historial setView={handleViewChange} />}
-        
-        {view === 'admin' && (
-          <div className="container py-5 text-center">
-            <div className="alert alert-warning"><i className="bi bi-gear-fill me-2"></i>Panel de Administración</div>
-          </div>
-        )}
+        {view === 'admin' && <AdminPanel productos={productos} setProductos={setProductos} setView={handleViewChange} />}
       </main>
 
-      <footer className="py-5 bg-dark w-100 mt-auto">
-        <div className="container text-center text-white small">
-          <p className="m-0">Copyright © Carvelu 2026 - Quilpué</p>
-        </div>
+      <footer className="py-5 bg-dark mt-auto text-center text-white small">
+        <p className="m-0">Copyright © Carvelu 2026</p>
       </footer>
     </div>
   );

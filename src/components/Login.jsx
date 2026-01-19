@@ -35,16 +35,29 @@ const Login = ({ setUser, setView }) => {
             return;
         }
 
+        // Simulación de cuenta Admin Maestra
+        if (!isRegistering && email === "admin@carvelu.cl" && pass === "admin123") {
+            const adminUser = { 
+                name: "Administrador", 
+                email: "admin@carvelu.cl", 
+                role: "admin" 
+            };
+            localStorage.setItem('user', JSON.stringify(adminUser));
+            setUser(adminUser);
+            setView('tienda');
+            return;
+        }
+
         const usuariosExistentes = JSON.parse(localStorage.getItem('usuariosCarvelu')) || [];
 
         if (isRegistering) {
-            // No permitir dos cuentas con el mismo correo
             if (usuariosExistentes.find(u => u.email.toLowerCase() === email.toLowerCase())) {
                 alert("Este correo ya está registrado. Intenta iniciar sesión.");
                 return;
             }
 
-            const nuevoUsuario = { nombre, email, pass };
+            // Al registrarse, todos son rol 'cliente'
+            const nuevoUsuario = { nombre, email, pass, role: 'cliente' };
             usuariosExistentes.push(nuevoUsuario);
             localStorage.setItem('usuariosCarvelu', JSON.stringify(usuariosExistentes));
             
@@ -53,13 +66,16 @@ const Login = ({ setUser, setView }) => {
             setPass("");
             setErrores({ nombre: false, email: false, pass: false, emailFormato: false, loginFallido: false });
         } else {
-            // LOGIN: Buscamos por EMAIL y CONTRASEÑA
             const usuarioEncontrado = usuariosExistentes.find(
                 u => u.email.toLowerCase() === email.toLowerCase() && u.pass === pass
             );
 
             if (usuarioEncontrado) {
-                const sessionUser = { name: usuarioEncontrado.nombre, email: usuarioEncontrado.email };
+                const sessionUser = { 
+                    name: usuarioEncontrado.nombre, 
+                    email: usuarioEncontrado.email,
+                    role: usuarioEncontrado.role || 'cliente' 
+                };
                 localStorage.setItem('user', JSON.stringify(sessionUser));
                 setUser(sessionUser);
                 setView('tienda');
