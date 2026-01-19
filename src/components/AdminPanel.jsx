@@ -30,12 +30,12 @@ const AdminPanel = ({ productos, setProductos, setView }) => {
         if (editando) {
             setProductos(productos.map(p => p.id === editando.id ? productoFinal : p));
             setEditando(null);
-            mostrarToast("¡Corte actualizado correctamente! 🥩", "bg-success");
+            mostrarToast("¡Corte actualizado correctamente!", "bg-success");
         } else {
             const id = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1;
             setProductos([...productos, { ...productoFinal, id }]);
             setNuevoProd({ nombre: "", precio: "", precioAnterior: "", img: "", oferta: false, nuevo: false });
-            mostrarToast("¡Producto añadido al inventario! ✨", "bg-primary");
+            mostrarToast("¡Producto añadido al inventario!", "bg-primary");
         }
     };
 

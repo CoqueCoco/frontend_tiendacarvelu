@@ -1,16 +1,65 @@
-# React + Vite
+# Carvelu - Cortes Premium & Tradición Familiar
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Carvelu es una aplicación web de E-commerce desarrollada con **React** y **Vite**, diseñada para una carnicería online. El sistema permite gestionar un catálogo de productos, manejar un carrito de compras dinámico, procesar ventas con generación de boletas y mantener un historial privado por usuario.
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+## 🚀 Funcionalidades Principales
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🛒 Experiencia del Cliente
+- **Catálogo Dinámico:** Vistas separadas para la tienda general, ofertas imperdibles y productos recién llegados.
+- **Buscador en Tiempo Real:** Filtro de productos por nombre mediante la barra de búsqueda en el Navbar.
+- **Carrito de Compras:** Gestión de cantidades y persistencia de datos.
+- **Sistema de Notificaciones (Stacking):** Avisos visuales acumulables al agregar productos, mejorando la respuesta de la interfaz.
+- **Boleta de Venta:** Generación de un resumen detallado de compra con opción de impresión.
 
-## Expanding the ESLint configuration
+### 🔐 Seguridad y Privacidad
+- **Autenticación:** Sistema de registro e inicio de sesión.
+- **Historial Privado:** Cada usuario puede ver únicamente sus propios pedidos anteriores, vinculados de forma segura a su correo electrónico.
+- **Protección de Rutas:** El acceso al carrito, historial y panel de administración está restringido a usuarios autenticados.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### ⚙️ Administración (Panel Admin)
+- **Gestión de Inventario:** CRUD completo (Crear, Leer, Actualizar, Eliminar) para productos.
+- **Control de Etiquetas:** Posibilidad de marcar productos como "Oferta" o "Nuevo" directamente desde la interfaz.
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+* **React 18** - Biblioteca principal de UI.
+* **Vite** - Herramienta de construcción (Build tool) ultra rápida.
+* **Bootstrap 5** - Framework de estilos para un diseño responsivo y moderno.
+* **Bootstrap Icons** - Librería de iconos vectoriales.
+* **Local Storage** - Persistencia de datos local para carrito, inventario, usuarios e historial.
+
+---
+
+## 💻 Instalación y Uso
+
+Sigue estos pasos para ejecutar el proyecto en tu máquina local:
+
+1. **Clonar o descargar el proyecto:**
+   Asegúrate de tener todos los archivos en una carpeta.
+
+2. **Instalar dependencias:**
+   Abre una terminal en la carpeta del proyecto y ejecuta:
+   npm install
+Iniciar el servidor de desarrollo:
+
+npm run dev
+Acceder a la App: Abre tu navegador en http://localhost:XXXX (o el puerto indicado en la terminal).
+
+🧪 Pruebas Unitarias
+El proyecto incluye un conjunto de pruebas para validar la lógica del negocio:
+
+Registro de nuevos usuarios.
+
+Flujo de inicio de sesión.
+
+Adición de productos al carrito.
+
+Verificación de persistencia en LocalStorage.
+
+Para ejecutar los tests:
+
+npm test
