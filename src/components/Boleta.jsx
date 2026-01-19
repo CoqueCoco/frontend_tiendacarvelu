@@ -1,8 +1,21 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
-const Boleta = ({ user, setView, setCart }) => {
+const Boleta = ({ user, setView, setCart, onSaveOrder }) => {
     // Obtenemos el último pedido guardado por Carrito.jsx
     const pedido = JSON.parse(localStorage.getItem('ultimoPedido'));
+    
+    // Usamos un ref para asegurarnos de que el pedido se guarde solo una vez al cargar
+    const guardadoRef = useRef(false);
+
+    useEffect(() => {
+        // Si hay un pedido y no lo hemos guardado en este ciclo de renderizado
+        if (pedido && !guardadoRef.current && onSaveOrder) {
+            // Enviamos el pedido al historial global de App.jsx
+            // Se le adjunta automáticamente el userEmail para la privacidad
+            onSaveOrder(pedido);
+            guardadoRef.current = true;
+        }
+    }, [pedido, onSaveOrder]);
 
     if (!pedido) {
         return (
@@ -15,6 +28,8 @@ const Boleta = ({ user, setView, setCart }) => {
 
     const finalizarCompra = () => {
         setCart([]); // Limpiamos el carrito global
+        // Limpiamos el pedido temporal para que no se duplique al volver a entrar
+        localStorage.removeItem('ultimoPedido');
         setView('tienda');
     };
 

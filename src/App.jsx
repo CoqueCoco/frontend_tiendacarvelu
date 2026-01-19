@@ -35,6 +35,12 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  // ESTADO NUEVO: Historial general (para admin o almacenamiento global)
+  const [historialGlobal, setHistorialGlobal] = useState(() => {
+    const saved = localStorage.getItem('carvelu_historial');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [view, setView] = useState('tienda');
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -46,16 +52,18 @@ function App() {
     localStorage.setItem('carveluCart', JSON.stringify(cart));
   }, [cart]);
 
-  // CONTROL DE ACCESO: Aquí es donde validamos según la vista
+  // Sincronizar historial global
+  useEffect(() => {
+    localStorage.setItem('carvelu_historial', JSON.stringify(historialGlobal));
+  }, [historialGlobal]);
+
   const handleViewChange = (newView) => {
-    // 1. Si intenta ir al Carrito o Historial y NO está logueado
     if ((newView === 'carrito' || newView === 'historial') && !user) {
-        alert("Para revisar tu carrito y finalizar la compra, por favor inicia sesión.");
+        alert("Para revisar tu historial y finalizar la compra, por favor inicia sesión.");
         setView('login');
         return;
     }
 
-    // 2. Si intenta ir al Admin y NO es admin
     if (newView === 'admin' && user?.role !== 'admin') {
         alert("Acceso denegado. Se requieren permisos de administrador.");
         setView('tienda');
@@ -67,7 +75,6 @@ function App() {
     window.scrollTo(0, 0); 
   };
 
-  // Añadir al carrito ahora es LIBRE
   const addToCart = (product) => {
     setCart(prev => {
       const existe = prev.find(item => item.id === product.id);
@@ -82,6 +89,9 @@ function App() {
     if (view === 'recien-llegados') return p.nuevo && coincide;
     return coincide;
   });
+
+  // LOGICA DE PRIVACIDAD: Filtramos los pedidos que pertenecen al usuario actual
+  const misPedidos = historialGlobal.filter(pedido => pedido.userEmail === user?.email);
 
   return (
     <div className="d-flex flex-column min-vh-100"> 
@@ -117,8 +127,25 @@ function App() {
         {view === 'nosotros' && <Nosotros setView={handleViewChange} />}
         {view === 'carrito' && <Carrito cart={cart} setCart={setCart} user={user} setView={handleViewChange} />}
         {view === 'login' && <Login setUser={(u) => { setUser(u); setView('tienda'); }} setView={handleViewChange} />}
-        {view === 'boleta' && <Boleta cart={cart} user={user} setView={handleViewChange} setCart={setCart} />}
-        {view === 'historial' && <Historial setView={handleViewChange} />}
+        
+        {/* BOLETA: Al finalizar la compra, debemos guardar el pedido con el email del usuario */}
+        {view === 'boleta' && (
+            <Boleta 
+                cart={cart} 
+                user={user} 
+                setView={handleViewChange} 
+                setCart={setCart} 
+                onSaveOrder={(nuevoPedido) => {
+                    // Inyectamos el email del dueño antes de guardar
+                    const pedidoConDuenio = { ...nuevoPedido, userEmail: user.email };
+                    setHistorialGlobal([...historialGlobal, pedidoConDuenio]);
+                }}
+            />
+        )}
+
+        {/* HISTORIAL: Ahora solo le pasamos "misPedidos" (los filtrados) */}
+        {view === 'historial' && <Historial pedidos={misPedidos} setView={handleViewChange} />}
+        
         {view === 'admin' && <AdminPanel productos={productos} setProductos={setProductos} setView={handleViewChange} />}
       </main>
 
