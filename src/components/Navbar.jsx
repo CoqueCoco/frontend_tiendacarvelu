@@ -55,6 +55,7 @@ const Navbar = ({ cartCount, setView, user, onLogout, searchTerm, setSearchTerm 
                                 type="text" 
                                 className="form-control border-start-0 ps-0 shadow-none" 
                                 placeholder="Buscar..." 
+                                data-testid="search-input" // AÑADIDO PARA TEST
                                 style={{ fontSize: '0.85rem' }}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -96,7 +97,11 @@ const Navbar = ({ cartCount, setView, user, onLogout, searchTerm, setSearchTerm 
                             </button>
                         )}
 
-                        <button className="btn btn-outline-dark fw-bold position-relative btn-sm py-2 px-3" onClick={() => navegar('carrito')}>
+                        <button 
+                            className="btn btn-outline-dark fw-bold position-relative btn-sm py-2 px-3" 
+                            onClick={() => navegar('carrito')}
+                            data-testid="cart-button" // AÑADIDO PARA TEST
+                        >
                             <i className="bi-cart-fill"></i>
                             <span className="ms-1 d-none d-md-inline">Carrito</span>
                             <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
@@ -104,7 +109,6 @@ const Navbar = ({ cartCount, setView, user, onLogout, searchTerm, setSearchTerm 
                             </span>
                         </button>
 
-                        {/* ADMIN: SOLO VISIBLE SI USER ES ADMIN */}
                         {user && user.role === 'admin' && (
                             <button className="btn btn-warning btn-sm shadow-sm fw-bold" onClick={() => navegar('admin')}>
                                 <i className="bi bi-gear-fill me-1"></i> Panel
