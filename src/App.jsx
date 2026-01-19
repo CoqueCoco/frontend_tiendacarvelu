@@ -3,6 +3,8 @@ import Navbar from './components/Navbar';
 import Header from './components/Header';
 import Productos from './components/Productos'; 
 import Carrito from './components/Checkout'; 
+import Login from './components/Login'; 
+import Boleta from './components/Boleta'; // <--- Importamos el nuevo componente
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css'; 
 
@@ -25,7 +27,6 @@ function App() {
 
   const [view, setView] = useState('tienda');
   
-  // Cambiamos el usuario a null para probar la restricción de login
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -35,14 +36,20 @@ function App() {
     localStorage.setItem('carveluCart', JSON.stringify(cart));
   }, [cart]);
 
-  // Función de navegación con protección de ruta
   const handleViewChange = (newView) => {
-    if (newView === 'carrito' && !user) {
-      alert("Para proceder al pago, por favor, inicia sesión.");
-      // Aquí podrías redirigir a un login, por ahora lo dejamos en tienda
+    // Protección: Para ir al carrito o ver la boleta DEBE estar logueado
+    if ((newView === 'carrito' || newView === 'boleta') && !user) {
+      alert("Para realizar esta acción, por favor inicia sesión.");
+      setView('login');
       return;
     }
     setView(newView);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    setView('tienda');
   };
 
   const addToCart = (product) => {
@@ -51,10 +58,16 @@ function App() {
 
   return (
     <div className="d-flex flex-column min-vh-100"> 
-      <Navbar cartCount={cart.length} setView={handleViewChange} />
+      <Navbar 
+        cartCount={cart.length} 
+        setView={handleViewChange} 
+        user={user} 
+        onLogout={handleLogout} 
+      />
       
       <main className="flex-grow-1">
-        {view === 'tienda' ? (
+        {/* VISTA: TIENDA */}
+        {view === 'tienda' && (
           <>
             <Header />
             <section className="py-5">
@@ -62,31 +75,43 @@ function App() {
                 <h2 className="fw-bolder mb-4 text-center">Nuestros Cortes Destacados</h2>
                 <div className="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
                   {PRODUCTOS_DATA.map((prod) => (
-                    <Productos 
-                      key={prod.id} 
-                      data={prod} 
-                      onAdd={addToCart} 
-                    />
+                    <Productos key={prod.id} data={prod} onAdd={addToCart} />
                   ))}
                 </div>
               </div>
             </section>
           </>
-        ) : (
+        )}
+
+        {/* VISTA: CARRITO / CHECKOUT */}
+        {view === 'carrito' && (
           <Carrito 
             cart={cart} 
             setCart={setCart} 
             user={user} 
-            setView={setView} 
+            setView={handleViewChange} 
+          />
+        )}
+
+        {/* VISTA: LOGIN / REGISTRO */}
+        {view === 'login' && (
+          <Login setUser={setUser} setView={handleViewChange} />
+        )}
+
+        {/* VISTA: BOLETA FINAL */}
+        {view === 'boleta' && (
+          <Boleta 
+            cart={cart} 
+            user={user} 
+            setView={handleViewChange} 
+            setCart={setCart} 
           />
         )}
       </main>
 
       <footer className="py-5 bg-dark w-100 mt-auto">
-        <div className="container">
-          <p className="m-0 text-center text-white small">
-            Copyright &copy; Carvelu 2026 - Expertos en Carnes
-          </p>
+        <div className="container text-center text-white small">
+          <p className="m-0">Copyright &copy; Carvelu 2026 - Expertos en Carnes</p>
         </div>
       </footer>
     </div>
