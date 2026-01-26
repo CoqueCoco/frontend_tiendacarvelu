@@ -13,8 +13,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
 
 function App() {
-  // --- ESTADOS PRINCIPALES ---
-  // Ahora productos inicia vacío porque vienen del Backend
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,16 +35,17 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [notifications, setNotifications] = useState([]);
 
-  // URL de tu API de Spring Boot
-  const API_URL = "http://localhost:8080/api/productos";
+  // --- IP DE TU EC2 ACTUALIZADA ---
+  const API_URL = "http://34.238.207.193:8080/api/productos";
 
-  // --- 1. CARGAR PRODUCTOS DESDE EL BACKEND (GET) ---
   const fetchProductos = async () => {
     try {
       setLoading(true);
       const response = await fetch(API_URL);
       if (!response.ok) throw new Error("Error en la respuesta del servidor");
       const data = await response.json();
+      
+      // Sincronización: El backend envía 'img', React lo recibe como tal
       setProductos(data);
     } catch (error) {
       console.error("Error al conectar con el Backend:", error);
@@ -59,39 +58,38 @@ function App() {
     fetchProductos();
   }, []);
 
-  // --- 2. GUARDAR PRODUCTO EN EL BACKEND (POST) ---
   const handleSaveProduct = async (nuevoProducto) => {
     try {
+      // El objeto 'nuevoProducto' ya viene con la llave 'img' desde AdminPanel
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevoProducto)
       });
       if (response.ok) {
-        fetchProductos(); // Refrescamos la lista tras guardar
+        fetchProductos(); 
         return true;
       }
+      return false;
     } catch (error) {
       console.error("Error al guardar producto:", error);
       return false;
     }
   };
 
-  // --- 3. ELIMINAR PRODUCTO DEL BACKEND (DELETE) ---
   const handleDeleteProduct = async (id) => {
     try {
       const response = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE'
       });
       if (response.ok) {
-        fetchProductos(); // Refrescamos la lista tras eliminar
+        fetchProductos(); 
       }
     } catch (error) {
       console.error("Error al eliminar producto:", error);
     }
   };
 
-  // --- PERSISTENCIA LOCAL (Carrito e Historial) ---
   useEffect(() => {
     localStorage.setItem('carveluCart', JSON.stringify(cart));
   }, [cart]);
@@ -104,7 +102,6 @@ function App() {
     localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
 
-  // --- LÓGICA DE NOTIFICACIONES ---
   const showNotification = (nombre) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, nombre }]);
@@ -113,7 +110,6 @@ function App() {
     }, 3000);
   };
 
-  // --- MANEJO DE VISTAS ---
   const handleViewChange = (newView) => {
     if ((newView === 'carrito' || newView === 'historial') && !user) {
         alert("Inicia sesión para acceder a esta sección.");
@@ -121,7 +117,7 @@ function App() {
         return;
     }
     if (newView === 'admin' && user?.role !== 'admin') {
-        alert("Acceso denegado.");
+        alert("Acceso denegado. Se requiere cuenta de administrador.");
         setView('tienda');
         return;
     }
@@ -159,7 +155,6 @@ function App() {
         setSearchTerm={setSearchTerm} 
       />
 
-      {/* STACK DE NOTIFICACIONES */}
       <div className="toast-container position-fixed bottom-0 end-0 p-3" style={{ zIndex: 2000 }}>
         {notifications.map((n) => (
           <div key={n.id} className="toast show align-items-center text-white bg-success border-0 mb-2 shadow-lg" role="alert">
